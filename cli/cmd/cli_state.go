@@ -164,6 +164,13 @@ func (c *cliState) LoadProfiles() (lwconfig.Profiles, error) {
 // if not, it throws an error with breadcrumbs to help the user configure the CLI
 func (c *cliState) VerifySettings() error {
 	c.Log.Debugw("verifying config", "version", c.CfgVersion)
+
+	if c.CfgVersion == 2 {
+		// TODO verify changes for config version 2
+		// subaccount?
+		return nil
+	}
+
 	if c.Profile == "" ||
 		c.Account == "" ||
 		c.Secret == "" ||
@@ -193,6 +200,11 @@ func (c *cliState) NewClient() error {
 
 	if c.CfgVersion == 2 {
 		apiOpts = append(apiOpts, api.WithApiV2())
+	}
+
+	if c.OrgLevel {
+		c.Log.Debug("accessing organization level data")
+		apiOpts = append(apiOpts, api.WithHeader("Org-Access", "true"))
 	}
 
 	if os.Getenv("LW_API_SERVER_URL") != "" {
@@ -305,6 +317,11 @@ func (c *cliState) loadStateFromViper() {
 	if v := viper.GetString("subaccount"); v != "" {
 		c.Subaccount = v
 		c.Log.Debugw("state updated", "subaccount", c.Subaccount)
+	}
+
+	if viper.GetBool("org") {
+		c.OrgLevel = true
+		c.Log.Debugw("state updated", "org", "true")
 	}
 }
 

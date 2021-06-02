@@ -39,4 +39,5 @@ func (svc *AccountService) GetOrganizationInfo() (
 type accountOrganizationInfoResponse struct {
 	OrgAccount     bool   `json:"orgAccount"`
 	OrgAccountName string `json:"orgAccountName,omitempty"`
+	OrgAccountURL  string `json:"orgAccountUrl,omitempty"`
 }

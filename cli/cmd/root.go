@@ -64,7 +64,17 @@ This will prompt you for your Lacework account and a set of API access keys.`,
 				if cmd.HasParent() && cmd.Parent().Use == "configure" {
 					return nil
 				}
-				return cli.NewClient()
+
+				if err := cli.NewClient(); err != nil {
+					return err
+				}
+
+				if cli.CfgVersion != 2 {
+					cli.Log.Infow("v1 config found, migrating profile", "profile", cli.Profile)
+					return cli.MigrateProfile()
+				}
+
+				return nil
 			}
 		},
 		PersistentPostRunE: func(cmd *cobra.Command, _ []string) error {
@@ -143,6 +153,9 @@ func init() {
 	rootCmd.PersistentFlags().StringP("subaccount", "u", "",
 		"sub-account name inside your organization (org admins only)",
 	)
+	rootCmd.PersistentFlags().Bool("org", false,
+		"access organization level data sets (org admins only)",
+	)
 
 	errcheckWARN(viper.BindPFlag("debug", rootCmd.PersistentFlags().Lookup("debug")))
 	errcheckWARN(viper.BindPFlag("nocolor", rootCmd.PersistentFlags().Lookup("nocolor")))
@@ -153,6 +166,7 @@ func init() {
 	errcheckWARN(viper.BindPFlag("api_key", rootCmd.PersistentFlags().Lookup("api_key")))
 	errcheckWARN(viper.BindPFlag("api_secret", rootCmd.PersistentFlags().Lookup("api_secret")))
 	errcheckWARN(viper.BindPFlag("subaccount", rootCmd.PersistentFlags().Lookup("subaccount")))
+	errcheckWARN(viper.BindPFlag("org", rootCmd.PersistentFlags().Lookup("org")))
 }
 
 // initConfig reads in config file and ENV variables if set
